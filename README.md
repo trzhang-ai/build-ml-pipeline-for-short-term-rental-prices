@@ -45,7 +45,9 @@ Please ensure you are using one of the supported OS versions to avoid compatibil
 
 ### Python Requirement
 
-This project requires **Python 3.13**. Please ensure that you have Python 3.13 installed and set as the default version in your environment to avoid any runtime issues.
+The development environment and pipeline steps use **Python 3.13**. The EDA step intentionally uses
+**Python 3.12** because `ydata-profiling` has a tighter scientific-stack compatibility range. Conda selects
+the appropriate interpreter from each environment file; do not force the EDA step onto Python 3.13.
 
 ### Fork the Starter kit
 Go to [https://github.com/udacity/build-ml-pipeline-for-short-term-rental-prices.git](https://github.com/udacity/build-ml-pipeline-for-short-term-rental-prices.git)
@@ -72,6 +74,13 @@ file provided in the root of the repository and activate it:
 > conda env create -f environment.yml
 > conda activate nyc_airbnb_dev
 ```
+
+The environment files pin MLflow 3.13.0 as the newest release compatible with the starter model code.
+Starting with MLflow 3.14.0, the default serialization changed to `skops`, which cannot serialize the
+starter pipeline's custom `FunctionTransformer` lambda functions without code changes.
+
+The EDA environment also pins Setuptools 81.0.0. Setuptools 82 removed `pkg_resources`, which
+`ydata-profiling` 4.18.4 still imports at runtime.
 
 ### Get API key for Weights and Biases
 Let's make sure we are logged in to Weights & Biases. Get your API key from W&B by going to 
@@ -229,7 +238,7 @@ notebook can be understood by other people like your colleagues
    ```bash
    > mlflow run src/eda
    ```
-   This will install Jupyter and all the dependencies for `pandas-profiling`, and open a Jupyter notebook instance.
+   This will install Jupyter and all the dependencies for `ydata-profiling`, and open a Jupyter notebook instance.
    Click on New -> Python 3 and create a new notebook. Rename it `EDA` by clicking on `Untitled` at the top, beside the
    Jupyter logo.
 3. Within the notebook, fetch the artifact we just created (``sample.csv``) from W&B and read 
@@ -240,17 +249,17 @@ notebook can be understood by other people like your colleagues
     import pandas as pd
     
     run = wandb.init(project="nyc_airbnb", group="eda", save_code=True)
-    local_path = wandb.use_artifact("sample.csv:latest").file()
+    local_path = run.use_artifact("sample.csv:latest").file()
     df = pd.read_csv(local_path)
     ```
     Note that we use ``save_code=True`` in the call to ``wandb.init`` so the notebook is uploaded and versioned
     by W&B.
 
-4. Using `pandas-profiling`, create a profile:
+4. Using `ydata-profiling`, create a profile:
    ```python
-   import pandas_profiling
+   from ydata_profiling import ProfileReport
    
-   profile = pandas_profiling.ProfileReport(df)
+   profile = ProfileReport(df)
    profile.to_widgets()
    ```
    what do you notice? Look around and see what you can find. 
@@ -336,11 +345,11 @@ with the cleaned data:
                     so we must add it to ``conda.yml`` file, including a version:
    ```yaml
    dependencies:
-     - pip=23.3.1
-     - pandas=2.1.3
+     - pip=26.2.1
+     - pandas=2.3.3
      - pip:
-         - mlflow==2.8.1
-         - wandb==0.16.0
+         - mlflow==3.13.0
+         - wandb==0.28.1
    ```
    
 4. Add the ``basic_cleaning`` step to the pipeline (the ``main.py`` file):
@@ -586,7 +595,9 @@ If you see the any error while running the command:
 > mlflow run .
 ```
 
-Please, make sure all steps are using **the same** python version and that you have **conda installed**. Additionally, *mlflow* and *wandb* packages are crucial and should have the same version.
+Please make sure conda is installed and that each step uses the Python version declared in its own
+`conda.yml`. The EDA step uses Python 3.12 while the other steps use Python 3.13. Shared packages such as
+MLflow and W&B—and scikit-learn in the training and model-test steps—must stay on matching versions.
 
 
 ## License

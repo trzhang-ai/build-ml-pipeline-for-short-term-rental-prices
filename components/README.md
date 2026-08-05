@@ -1,12 +1,13 @@
 # Requirements
 
-In order to run these components you need to have conda (Miniconda or Anaconda) and MLflow installed.
-Install it with::
+In order to run these components you need to have conda (Miniconda or Anaconda), MLflow, and W&B installed.
+From the repository root, install the local component package and its compatible dependencies with::
 
-    > conda install mlflow=3.3.2
+    > python -m pip install -e ./components
 
-then run::
+Each component directory is a separate MLflow Project. For example, inspect the download component with::
 
-    > mlflow [url to this repo] -e help
+    > python components/get_data/run.py --help
 
-to get a description of the commands.
+Use ``mlflow run components/get_data ...`` to execute it with the environment declared in its own
+``conda.yml``.
