@@ -110,6 +110,8 @@ venv.bak/
 artifacts/
 wandb/
 mlruns/
+mlflow.db
+**/clean_sample.csv
 outputs/
 random_forest_dir/
 multirun/
