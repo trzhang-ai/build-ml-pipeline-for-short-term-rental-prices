@@ -8,3 +8,4 @@ dependencies:
   - pip:
       - mlflow==3.13.0
       - wandb==0.28.1
+      - pandas==2.3.3
